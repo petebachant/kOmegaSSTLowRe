@@ -1,7 +1,7 @@
 kOmegaSSTLowRe turbulence model
 ===============================
 
-Low Reynolds number kOmegaSST turbulence model add-on for OpenFOAM.
+Low Reynolds number kOmegaSST turbulence model for OpenFOAM.
 
 This code was originally written by RodgriguezFatz from the cfd-online forums. See the 
 original thread at 
