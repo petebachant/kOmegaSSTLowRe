@@ -1,0 +1,3 @@
+kOmegaSST_lowRe/kOmegaSST_lowRe.C
+
+LIB = $(FOAM_LIBBIN)/libMyIncompressibleRASModels
