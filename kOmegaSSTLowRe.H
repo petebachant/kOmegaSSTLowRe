@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::RASModels::kOmegaSST_lowRe
+    Foam::incompressible::RASModels::kOmegaSSTLowRe
 
 Description
     Implementation of the k-omega-SST turbulence model for incompressible
@@ -73,7 +73,7 @@ Description
 
     The default model coefficients correspond to the following:
     \verbatim
-        kOmegaSST_lowReCoeffs
+        kOmegaSSTLowReCoeffs
         {
             beta1       0.075;
             beta2       0.0828;
@@ -88,12 +88,12 @@ Description
     \endverbatim
 
 SourceFiles
-    kOmegaSST_lowRe.C
+    kOmegaSSTLowRe.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef kOmegaSST_lowRe_H
-#define kOmegaSST_lowRe_H
+#ifndef kOmegaSSTLowRe_H
+#define kOmegaSSTLowRe_H
 
 #include "RASModel.H"
 #include "wallDist.H"
@@ -108,10 +108,10 @@ namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class kOmegaSST_lowRe Declaration
+                          Class kOmegaSSTLowRe Declaration
 \*---------------------------------------------------------------------------*/
 
-class kOmegaSST_lowRe
+class kOmegaSSTLowRe
 :
     public RASModel
 {
@@ -205,13 +205,13 @@ protected:
 public:
 
     //- Runtime type information
-    TypeName("kOmegaSST_lowRe");
+    TypeName("kOmegaSSTLowRe");
 
 
     // Constructors
 
         //- Construct from components
-        kOmegaSST_lowRe
+        kOmegaSSTLowRe
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
@@ -222,7 +222,7 @@ public:
 
 
     //- Destructor
-    virtual ~kOmegaSST_lowRe()
+    virtual ~kOmegaSSTLowRe()
     {}
 
 

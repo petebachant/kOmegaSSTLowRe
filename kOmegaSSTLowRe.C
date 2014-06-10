@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "kOmegaSST_lowRe.H"
+#include "kOmegaSSTLowRe.H"
 #include "addToRunTimeSelectionTable.H"
 
 #include "backwardsCompatibilityWallFunctions.H"
@@ -39,11 +39,11 @@ namespace RASModels
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(kOmegaSST_lowRe, 0);
-addToRunTimeSelectionTable(RASModel, kOmegaSST_lowRe, dictionary);
+defineTypeNameAndDebug(kOmegaSSTLowRe, 0);
+addToRunTimeSelectionTable(RASModel, kOmegaSSTLowRe, dictionary);
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
-tmp<volScalarField> kOmegaSST_lowRe::ReT() const
+tmp<volScalarField> kOmegaSSTLowRe::ReT() const
 {
 	tmp<volScalarField> arg
 	(    	
@@ -54,7 +54,7 @@ tmp<volScalarField> kOmegaSST_lowRe::ReT() const
 
 
 
-tmp<volScalarField> kOmegaSST_lowRe::alphaStar() const
+tmp<volScalarField> kOmegaSSTLowRe::alphaStar() const
 {
 	tmp<volScalarField> arg
 	(     	
@@ -63,7 +63,7 @@ tmp<volScalarField> kOmegaSST_lowRe::alphaStar() const
 	return arg;
 }
 
-tmp<volScalarField> kOmegaSST_lowRe::alpha(const volScalarField& F1) const
+tmp<volScalarField> kOmegaSSTLowRe::alpha(const volScalarField& F1) const
 {
 	tmp<volScalarField> arg
 	(     	
@@ -72,7 +72,7 @@ tmp<volScalarField> kOmegaSST_lowRe::alpha(const volScalarField& F1) const
 	return arg;
 }
        
-tmp<volScalarField> kOmegaSST_lowRe::betaStar() const
+tmp<volScalarField> kOmegaSSTLowRe::betaStar() const
 {
 	tmp<volScalarField> arg
 	(  
@@ -83,7 +83,7 @@ tmp<volScalarField> kOmegaSST_lowRe::betaStar() const
 
 
 
-tmp<volScalarField> kOmegaSST_lowRe::F1(const volScalarField& CDkOmega) const
+tmp<volScalarField> kOmegaSSTLowRe::F1(const volScalarField& CDkOmega) const
 {
     tmp<volScalarField> CDkOmegaPlus = max
     (
@@ -105,7 +105,7 @@ tmp<volScalarField> kOmegaSST_lowRe::F1(const volScalarField& CDkOmega) const
 }
 
 
-tmp<volScalarField> kOmegaSST_lowRe::F2() const
+tmp<volScalarField> kOmegaSSTLowRe::F2() const
 {
     tmp<volScalarField> arg2 = max
         (
@@ -117,7 +117,7 @@ tmp<volScalarField> kOmegaSST_lowRe::F2() const
 }
 
 
-tmp<volScalarField> kOmegaSST_lowRe::F3() const
+tmp<volScalarField> kOmegaSSTLowRe::F3() const
 {
     tmp<volScalarField> arg3 = min
     (
@@ -129,7 +129,7 @@ tmp<volScalarField> kOmegaSST_lowRe::F3() const
 }
 
 
-tmp<volScalarField> kOmegaSST_lowRe::F23() const
+tmp<volScalarField> kOmegaSSTLowRe::F23() const
 {
     tmp<volScalarField> f23(F2());
 
@@ -144,7 +144,7 @@ tmp<volScalarField> kOmegaSST_lowRe::F23() const
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-kOmegaSST_lowRe::kOmegaSST_lowRe
+kOmegaSSTLowRe::kOmegaSSTLowRe
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
@@ -390,7 +390,7 @@ kOmegaSST_lowRe::kOmegaSST_lowRe
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volSymmTensorField> kOmegaSST_lowRe::R() const
+tmp<volSymmTensorField> kOmegaSSTLowRe::R() const
 {
     return tmp<volSymmTensorField>
     (
@@ -411,7 +411,7 @@ tmp<volSymmTensorField> kOmegaSST_lowRe::R() const
 }
 
 
-tmp<volSymmTensorField> kOmegaSST_lowRe::devReff() const
+tmp<volSymmTensorField> kOmegaSSTLowRe::devReff() const
 {
     return tmp<volSymmTensorField>
     (
@@ -431,7 +431,7 @@ tmp<volSymmTensorField> kOmegaSST_lowRe::devReff() const
 }
 
 
-tmp<fvVectorMatrix> kOmegaSST_lowRe::divDevReff(volVectorField& U) const
+tmp<fvVectorMatrix> kOmegaSSTLowRe::divDevReff(volVectorField& U) const
 {
     return
     (
@@ -441,7 +441,7 @@ tmp<fvVectorMatrix> kOmegaSST_lowRe::divDevReff(volVectorField& U) const
 }
 
 
-tmp<fvVectorMatrix> kOmegaSST_lowRe::divDevRhoReff
+tmp<fvVectorMatrix> kOmegaSSTLowRe::divDevRhoReff
 (
     const volScalarField& rho,
     volVectorField& U
@@ -457,7 +457,7 @@ tmp<fvVectorMatrix> kOmegaSST_lowRe::divDevRhoReff
 }
 
 
-bool kOmegaSST_lowRe::read()
+bool kOmegaSSTLowRe::read()
 {
     if (RASModel::read())
     {
@@ -477,7 +477,7 @@ bool kOmegaSST_lowRe::read()
 }
 
 
-void kOmegaSST_lowRe::correct()
+void kOmegaSSTLowRe::correct()
 {
     RASModel::correct();
 
