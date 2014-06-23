@@ -28,7 +28,7 @@ libs
     "libOpenFOAM.so"
     "libincompressibleTurbulenceModel.so"
     "libincompressibleRASModels.so"
-    "libMyIncompressibleRASModels.so"
+    "libmyIncompressibleRASModels.so"
 );
 ```
 

@@ -1,3 +1,3 @@
 kOmegaSSTLowRe.C
 
-LIB = $(FOAM_USER_LIBBIN)/libMyIncompressibleRASModels
+LIB = $(FOAM_USER_LIBBIN)/libmyIncompressibleRASModels
