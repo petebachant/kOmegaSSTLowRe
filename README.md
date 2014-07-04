@@ -37,3 +37,11 @@ In `constant/RASProperties` set
     RASModel        kOmegaSSTLowRe;
 
 
+### Boundary conditions
+
+|---------|-----------------|
+| `p`     | `zeroGradient`  |
+| `U`     |  `fixedValue (0 0 0)` | 
+| `nut`   |  `calculated` or `fixedValue uniform 0` |
+| `k`     |  `fixedValue uniform 1e-12` |
+| `omega` |  `omegaWallFunction` |
