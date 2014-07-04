@@ -39,7 +39,8 @@ In `constant/RASProperties` set
 
 ### Boundary conditions
 
-|---------|-----------------|
+|  Quantity | BC |
+|----------:|:----|
 | `p`     | `zeroGradient`  |
 | `U`     |  `fixedValue (0 0 0)` | 
 | `nut`   |  `calculated` or `fixedValue uniform 0` |
