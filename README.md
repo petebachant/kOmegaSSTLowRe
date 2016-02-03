@@ -1,7 +1,7 @@
 kOmegaSSTLowRe turbulence model
 ===============================
 
-Low Reynolds number kOmegaSST turbulence model for OpenFOAM.
+Low Reynolds number kOmegaSST turbulence model for OpenFOAM v3.0.x .
 
 This code was originally written by RodgriguezFatz from the cfd-online forums. See the 
 original thread at 
@@ -25,17 +25,29 @@ In `system/controlDict`:
 ```
 libs
 (
-    "libOpenFOAM.so"
-    "libincompressibleTurbulenceModel.so"
-    "libincompressibleRASModels.so"
     "libmyIncompressibleRASModels.so"
 );
 ```
 
-In `constant/RASProperties` set
+In `constant/turbulenceProperties` set
 
-    RASModel        kOmegaSSTLowRe;
+    simulationType RAS;
 
+	RAS
+	{
+	    RASModel        kOmegaSSTLowRe;
+	    turbulence      on;
+	    printCoeffs     on;
+	}
+
+Compilation/installation
+------------------------
+
+The current implementation does only support incompressible flow because no correction was applied to the original coded k and omega equations. This has to be basically with the way in which phi_ is calculated:
+
+	const surfaceScalarField& phi_ = this->alphaRhoPhi_;
+
+The model equations can be extended to a compressible formulation, although it requires rewriting the equations for k and omega, and the model might become invalid.
 
 ### Boundary conditions
 
@@ -43,6 +55,6 @@ In `constant/RASProperties` set
 |----------:|:----|
 | `p`     | `zeroGradient`  |
 | `U`     |  `fixedValue (0 0 0)` | 
-| `nut`   |  `calculated` or `fixedValue uniform 0` |
+| `nut`   |  `nutLowReWallFunction fixedValue uniform 0` |
 | `k`     |  `fixedValue uniform 1e-12` |
 | `omega` |  `omegaWallFunction` |

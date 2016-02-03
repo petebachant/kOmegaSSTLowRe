@@ -24,37 +24,36 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "kOmegaSSTLowRe.H"
-#include "addToRunTimeSelectionTable.H"
-
-#include "backwardsCompatibilityWallFunctions.H"
+#include "bound.H"
+#include "wallDist.H"
+//#include "backwardsCompatibilityWallFunctions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
-{
-namespace incompressible
 {
 namespace RASModels
 {
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(kOmegaSSTLowRe, 0);
-addToRunTimeSelectionTable(RASModel, kOmegaSSTLowRe, dictionary);
+
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
-tmp<volScalarField> kOmegaSSTLowRe::ReT() const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::ReT() const
 {
 	tmp<volScalarField> arg
 	(    	
-		(k_ / (nu()*omega_))
+		(k_ / (this->nu()*omega_))
 	);
 	return arg;
 }
 
 
 
-tmp<volScalarField> kOmegaSSTLowRe::alphaStar() const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::alphaStar() const
 {
 	tmp<volScalarField> arg
 	(     	
@@ -63,7 +62,8 @@ tmp<volScalarField> kOmegaSSTLowRe::alphaStar() const
 	return arg;
 }
 
-tmp<volScalarField> kOmegaSSTLowRe::alpha(const volScalarField& F1) const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::alpha(const volScalarField& F1) const
 {
 	tmp<volScalarField> arg
 	(     	
@@ -72,7 +72,8 @@ tmp<volScalarField> kOmegaSSTLowRe::alpha(const volScalarField& F1) const
 	return arg;
 }
        
-tmp<volScalarField> kOmegaSSTLowRe::betaStar() const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::betaStar() const
 {
 	tmp<volScalarField> arg
 	(  
@@ -83,7 +84,8 @@ tmp<volScalarField> kOmegaSSTLowRe::betaStar() const
 
 
 
-tmp<volScalarField> kOmegaSSTLowRe::F1(const volScalarField& CDkOmega) const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::F1(const volScalarField& CDkOmega) const
 {
     tmp<volScalarField> CDkOmegaPlus = max
     (
@@ -96,7 +98,7 @@ tmp<volScalarField> kOmegaSSTLowRe::F1(const volScalarField& CDkOmega) const
             max
             (
                 sqrt(k_)/(0.09*omega_*y_),
-                scalar(500.0)*nu()/(sqr(y_)*omega_)
+                scalar(500.0)*this->nu()/(sqr(y_)*omega_)
             ),
             4.0*k_/(sigmaOmega2_*CDkOmegaPlus*sqr(y_))
         );
@@ -105,23 +107,25 @@ tmp<volScalarField> kOmegaSSTLowRe::F1(const volScalarField& CDkOmega) const
 }
 
 
-tmp<volScalarField> kOmegaSSTLowRe::F2() const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::F2() const
 {
     tmp<volScalarField> arg2 = max
         (
             scalar(2.0)*sqrt(k_)/(0.09*omega_*y_),
-            scalar(500.0)*nu()/(sqr(y_)*omega_)
+            scalar(500.0)*this->nu()/(sqr(y_)*omega_)
         );
 
     return tanh(sqr(arg2));
 }
 
 
-tmp<volScalarField> kOmegaSSTLowRe::F3() const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::F3() const
 {
     tmp<volScalarField> arg3 = min
     (
-        150.0*nu()/(omega_*sqr(y_)),
+        150.0*this->nu()/(omega_*sqr(y_)),
         scalar(10.0)
     );
 
@@ -129,7 +133,8 @@ tmp<volScalarField> kOmegaSSTLowRe::F3() const
 }
 
 
-tmp<volScalarField> kOmegaSSTLowRe::F23() const
+template<class BasicTurbulenceModel>
+tmp<volScalarField> kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe::F23() const
 {
     tmp<volScalarField> f23(F2());
 
@@ -144,23 +149,37 @@ tmp<volScalarField> kOmegaSSTLowRe::F23() const
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-kOmegaSSTLowRe::kOmegaSSTLowRe
+template<class BasicTurbulenceModel>
+kOmegaSSTLowRe<BasicTurbulenceModel>::kOmegaSSTLowRe
 (
+    const alphaField& alpha,
+    const rhoField& rho,
     const volVectorField& U,
+    const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName,
-    const word& modelName
+    const transportModel& transport,
+    const word& propertiesName,
+    const word& type
 )
 :
-    RASModel(modelName, U, phi, transport, turbulenceModelName),
+    eddyViscosity<RASModel<BasicTurbulenceModel> >
+    (
+        type,
+        alpha,
+        rho,
+        U,
+        alphaRhoPhi,
+        phi,
+        transport,
+        propertiesName
+    ),
 
     betaInf_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
             "betaInf",
-            coeffDict_,
+            this->coeffDict_,
             0.072
         )
     ),
@@ -169,7 +188,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "beta1",
-            coeffDict_,
+            this->coeffDict_,
             0.075
         )
     ),
@@ -178,7 +197,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "beta2",
-            coeffDict_,
+            this->coeffDict_,
             0.0828
         )
     ),
@@ -187,7 +206,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "RBeta",
-            coeffDict_,
+            this->coeffDict_,
             8.0
         )
     ),
@@ -196,7 +215,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "RK",
-            coeffDict_,
+            this->coeffDict_,
             6.0
         )
     ),
@@ -205,7 +224,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "ROmega",
-            coeffDict_,
+            this->coeffDict_,
             2.95
         )
     ),
@@ -214,7 +233,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "betaStarInf",
-            coeffDict_,
+            this->coeffDict_,
             0.09
         )
     ),
@@ -223,7 +242,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "alphaStarInf",
-            coeffDict_,
+            this->coeffDict_,
             1.0
         )
     ),
@@ -232,7 +251,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "kappa",
-            coeffDict_,
+            this->coeffDict_,
             0.41
         )
     ),
@@ -241,7 +260,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "sigmaOmega1",
-            coeffDict_,
+            this->coeffDict_,
             2.0
         )
     ),
@@ -250,7 +269,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "sigmaOmega2",
-            coeffDict_,
+            this->coeffDict_,
             1.168
         )
     ),
@@ -259,7 +278,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "sigmaK1",
-            coeffDict_,
+            this->coeffDict_,
             1.176
         )
     ),
@@ -268,7 +287,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "sigmaK2",
-            coeffDict_,
+            this->coeffDict_,
             1.0
         )
     ),
@@ -277,7 +296,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "alphaZero",
-            coeffDict_,
+            this->coeffDict_,
             0.037
         )
     ),
@@ -287,7 +306,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "a1",
-            coeffDict_,
+            this->coeffDict_,
             0.31
         )
     ),
@@ -296,7 +315,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "b1",
-            coeffDict_,
+            this->coeffDict_,
             1.0
         )
     ),
@@ -305,7 +324,7 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         dimensioned<scalar>::lookupOrAddToDict
         (
             "c1",
-            coeffDict_,
+            this->coeffDict_,
             10.0
         )
     ),
@@ -314,159 +333,91 @@ kOmegaSSTLowRe::kOmegaSSTLowRe
         Switch::lookupOrAddToDict
         (
             "F3",
-            coeffDict_,
+            this->coeffDict_,
             false
         )
     ),
 
-    y_(mesh_),
+    y_(wallDist::New(this->mesh_).y()),
 
     k_
     (
         IOobject
         (
-            "k",
-            runTime_.timeName(),
-            mesh_,
-            IOobject::NO_READ,
+            IOobject::groupName("k", U.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
-        autoCreateK("k", mesh_)
+        this->mesh_
     ),
     omega_
     (
         IOobject
         (
-            "omega",
-            runTime_.timeName(),
-            mesh_,
-            IOobject::NO_READ,
+            IOobject::groupName("omega", U.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
-        autoCreateOmega("omega", mesh_)
-    ),
-    nut_
-    (
-        IOobject
-        (
-            "nut",
-            runTime_.timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        autoCreateNut("nut", mesh_)
+        this->mesh_
     )
 {
-    bound(k_, kMin_);
-    bound(omega_, omegaMin_);
+    bound(k_, this->kMin_);
+    bound(omega_, this->omegaMin_);
 
 
     //not low-Re nut_, but just some wrong initialization...
     //SST:  k_/omega_ * 1/(max(1.0/alphaStar(F1),sqrt(S2)*F2()/(a1_*omega_))); cannot be used here, because F1 cannot be used
     
-    nut_ =
+    this->nut_ =
     (
         a1_*k_
       / max
         (
             a1_*omega_,
-            b1_*F2()*sqrt(2.0)*mag(symm(fvc::grad(U_)))
+            b1_*F2()*sqrt(2.0)*mag(symm(fvc::grad(this->U_)))
         )
     );
 	
 	Info << "------------------------------------------------------------------------" << endl;
-	Info << "kOmegaSST lowRe model V1.0" << endl;
+	Info << "kOmegaSSTLowRe lowRe model V1.0" << endl;
 	Info << "------------------------------------------------------------------------" << endl;
 
 
   
 
-    nut_.correctBoundaryConditions();
+    this->nut_.correctBoundaryConditions();
 
-    printCoeffs();
+    this->printCoeffs(type);
 }
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volSymmTensorField> kOmegaSSTLowRe::R() const
+
+
+
+template<class BasicTurbulenceModel>
+void kOmegaSSTLowRe<BasicTurbulenceModel>::correctNut()
 {
-    return tmp<volSymmTensorField>
-    (
-        new volSymmTensorField
-        (
-            IOobject
-            (
-                "R",
-                runTime_.timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            ((2.0/3.0)*I)*k_ - nut_*twoSymm(fvc::grad(U_)),
-            k_.boundaryField().types()
-        )
-    );
+    
 }
 
 
-tmp<volSymmTensorField> kOmegaSSTLowRe::devReff() const
+template<class BasicTurbulenceModel>
+bool kOmegaSSTLowRe<BasicTurbulenceModel>::read()
 {
-    return tmp<volSymmTensorField>
-    (
-        new volSymmTensorField
-        (
-            IOobject
-            (
-                "devRhoReff",
-                runTime_.timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-           -nuEff()*dev(twoSymm(fvc::grad(U_)))
-        )
-    );
-}
-
-
-tmp<fvVectorMatrix> kOmegaSSTLowRe::divDevReff(volVectorField& U) const
-{
-    return
-    (
-      - fvm::laplacian(nuEff(), U)
-      - fvc::div(nuEff()*dev(T(fvc::grad(U))))
-    );
-}
-
-
-tmp<fvVectorMatrix> kOmegaSSTLowRe::divDevRhoReff
-(
-    const volScalarField& rho,
-    volVectorField& U
-) const
-{
-    volScalarField muEff("muEff", rho*nuEff());
-
-    return
-    (
-      - fvm::laplacian(muEff, U)
-      - fvc::div(muEff*dev(T(fvc::grad(U))))
-    );
-}
-
-
-bool kOmegaSSTLowRe::read()
-{
-    if (RASModel::read())
+    if (eddyViscosity<RASModel<BasicTurbulenceModel> >::read())
     {
-        beta1_.readIfPresent(coeffDict());
-        beta2_.readIfPresent(coeffDict());
-        a1_.readIfPresent(coeffDict());
-        b1_.readIfPresent(coeffDict());
-        c1_.readIfPresent(coeffDict());
-        F3_.readIfPresent("F3", coeffDict());
+        beta1_.readIfPresent(this->coeffDict());
+        beta2_.readIfPresent(this->coeffDict());
+        a1_.readIfPresent(this->coeffDict());
+        b1_.readIfPresent(this->coeffDict());
+        c1_.readIfPresent(this->coeffDict());
+        F3_.readIfPresent("F3", this->coeffDict());
 
         return true;
     }
@@ -476,23 +427,26 @@ bool kOmegaSSTLowRe::read()
     }
 }
 
-
-void kOmegaSSTLowRe::correct()
+template<class BasicTurbulenceModel>
+void kOmegaSSTLowRe<BasicTurbulenceModel>::correct()
 {
-    RASModel::correct();
+    //RASModel::correct();
 
-    if (!turbulence_)
+    if (!this->turbulence_)
     {
         return;
     }
 
-    if (mesh_.changing())
+    /*if (mesh_.changing())
     {
         y_.correct();
-    }
+    }*/
 
-    const volScalarField S2(2*magSqr(symm(fvc::grad(U_))));
-    volScalarField G(GName(), nut_*S2);
+    //const volScalarField S2(2*magSqr(symm(fvc::grad(this->U_))));
+    const volVectorField& U = this->U_;
+    tmp<volTensorField> tgradU = fvc::grad(U);
+    volScalarField S2(2*magSqr(symm(tgradU())));
+    volScalarField G(this->GName(), this->nut_*S2);
 
     // Update omega and G at the wall
     omega_.boundaryField().updateCoeffs();
@@ -504,7 +458,7 @@ void kOmegaSSTLowRe::correct()
 
     const volScalarField F1(this->F1(CDkOmega));
 
-
+    const surfaceScalarField& phi_ = this->alphaRhoPhi_;
     // Turbulent frequency equation
     tmp<fvScalarMatrix> omegaEqn
     (
@@ -526,7 +480,7 @@ void kOmegaSSTLowRe::correct()
     omegaEqn().boundaryManipulate(omega_.boundaryField());
 
     solve(omegaEqn);
-    bound(omega_, omegaMin_);
+    bound(omega_, this->omegaMin_);
 
     // Turbulent kinetic energy equation
     tmp<fvScalarMatrix> kEqn
@@ -541,28 +495,29 @@ void kOmegaSSTLowRe::correct()
 
     kEqn().relax();
     solve(kEqn);
-    bound(k_, kMin_);
+    bound(k_, this->kMin_);
 
 
     // Re-calculate viscosity
     
-    //original high Re kOmegaSST:
+    //original high Re kOmegaSSTLowRe:
     //nut_ = a1_*k_/max(a1_*omega_, b1_*F23()*sqrt(S2));
     
-    // low Re kOmegaSST from paper:
-    nut_ = k_/omega_ * 1.0/max(1.0/alphaStar(),sqrt(S2)*F2()/(a1_*omega_));
+    // low Re kOmegaSSTLowRe from paper:
+    this->nut_ = k_/omega_ * 1.0/max(1.0/alphaStar(),sqrt(S2)*F2()/(a1_*omega_));
     
-    // low Re kOmegaSST simplified:
+    // low Re kOmegaSSTLowRe simplified:
     //nut_ = a1_*k_ /max(a1_/alphaStar(F1)*omega_,sqrt(S2)*F2());	
 
-    nut_.correctBoundaryConditions();
+        
+
+    this->nut_.correctBoundaryConditions();
 }
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace RASModels
-} // End namespace incompressible
 } // End namespace Foam
 
 // ************************************************************************* //
