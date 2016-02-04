@@ -1,2 +1,5 @@
 *~
 *.ini
+/linu
+Make/linux64GccDPInt32Opt/
+lnInclude/

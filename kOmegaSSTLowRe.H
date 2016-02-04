@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::RASModels::kOmegaSSTLowRe
+    Foam::incompressible::RASModels::kOmegaSSTLowReLowRe
 
 Description
     Implementation of the k-omega-SST turbulence model for incompressible
@@ -31,11 +31,11 @@ Description
      ****************************************************************
      *
      *
-     *		Fluent V.15.0 low-Re Extensions
+     *      Fluent V.15.0 low-Re Extensions
      *
      *
      ****************************************************************
-	
+    
 
 
     Turbulence model described in:
@@ -73,7 +73,7 @@ Description
 
     The default model coefficients correspond to the following:
     \verbatim
-        kOmegaSSTLowReCoeffs
+        kOmegaSSTLowReLowReCoeffs
         {
             beta1       0.075;
             beta2       0.0828;
@@ -88,7 +88,7 @@ Description
     \endverbatim
 
 SourceFiles
-    kOmegaSSTLowRe.C
+    kOmegaSSTLowReLowRe.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -96,46 +96,51 @@ SourceFiles
 #define kOmegaSSTLowRe_H
 
 #include "RASModel.H"
-#include "wallDist.H"
+#include "eddyViscosity.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace incompressible
-{
 namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class kOmegaSSTLowRe Declaration
+                           Class kOmegaSSTLowRe Declaration
 \*---------------------------------------------------------------------------*/
 
+template<class BasicTurbulenceModel>
 class kOmegaSSTLowRe
 :
-    public RASModel
+    public eddyViscosity<RASModel<BasicTurbulenceModel> >
 {
+    // Private Member Functions
+
+        // Disallow default bitwise copy construct and assignment
+        kOmegaSSTLowRe(const kOmegaSSTLowRe&);
+        kOmegaSSTLowRe& operator=(const kOmegaSSTLowRe&);
+
 
 protected:
 
     // Protected data
 
         // Model coefficients
-	    dimensionedScalar betaInf_;
+            dimensionedScalar betaInf_;
             dimensionedScalar beta1_;
             dimensionedScalar beta2_;
 
-	    dimensionedScalar RBeta_;
-	    dimensionedScalar RK_;
-	    dimensionedScalar ROmega_;
+            dimensionedScalar RBeta_;
+            dimensionedScalar RK_;
+            dimensionedScalar ROmega_;
             dimensionedScalar betaStarInf_;
             dimensionedScalar alphaStarInf_;
-	    dimensionedScalar kappa_;
-	    dimensionedScalar sigmaOmega1_;
-	    dimensionedScalar sigmaOmega2_;
-	    dimensionedScalar sigmaK1_;
-	    dimensionedScalar sigmaK2_;
-	    dimensionedScalar alphaZero_;
+            dimensionedScalar kappa_;
+            dimensionedScalar sigmaOmega1_;
+            dimensionedScalar sigmaOmega2_;
+            dimensionedScalar sigmaK1_;
+            dimensionedScalar sigmaK2_;
+            dimensionedScalar alphaZero_;
 
             dimensionedScalar a1_;
             dimensionedScalar b1_;
@@ -143,24 +148,22 @@ protected:
 
             Switch F3_;
 
-
-        //- Wall distance field
-        //  Note: different to wall distance in parent RASModel
-        wallDist y_;
-
         // Fields
+
+            //- Wall distance
+            //  Note: different to wall distance in parent RASModel
+            //  which is for near-wall cells only
+            const volScalarField& y_;
 
             volScalarField k_;
             volScalarField omega_;
-            volScalarField nut_;
+            
+    // Private Member Functions
 
-
-    // Protected Member Functions
-	tmp<volScalarField> ReT() const;
-	tmp<volScalarField> alphaStar() const;
-	tmp<volScalarField> alpha(const volScalarField& F1) const;
-	tmp<volScalarField> betaStar() const;
-	//tmp<volScalarField> alphaStarZero() const;
+        tmp<volScalarField> ReT() const;
+        tmp<volScalarField> alphaStar() const;
+        tmp<volScalarField> alpha(const volScalarField& F1) const;
+        tmp<volScalarField> betaStar() const;
 
         tmp<volScalarField> F1(const volScalarField& CDkOmega) const;
         tmp<volScalarField> F2() const;
@@ -177,32 +180,50 @@ protected:
             return F1*(psi1 - psi2) + psi2;
         }
 
-
-	tmp<volScalarField> alphaInf(const volScalarField& F1) const
+        tmp<volScalarField> alphaInf(const volScalarField& F1) const
         {
             return blend(F1, (beta1_/betaStarInf_ - sqr(kappa_)/(sigmaOmega1_ * sqrt(betaStarInf_))), (beta2_/betaStarInf_ - sqr(kappa_)/(sigmaOmega2_ * sqrt(betaStarInf_))));
             //return blend(F1, 0.553166667, 0.440262557);
         }
-	tmp<volScalarField> betaI(const volScalarField& F1) const
+    tmp<volScalarField> betaI(const volScalarField& F1) const
         {
             return blend(F1, beta1_, beta2_);
         }
         tmp<volScalarField> beta(const volScalarField& F1) const
         {
-            return betaI(F1);	//non-compressible version
+            return betaI(F1);   //non-compressible version
         }
-	tmp<volScalarField> sigmaK(const volScalarField& F1) const
+    tmp<volScalarField> sigmaK(const volScalarField& F1) const
         {
             return 1.0 / blend(F1, 1.0/sigmaK1_, 1.0/sigmaK2_);
         }
-	tmp<volScalarField> sigmaOmega(const volScalarField& F1) const
+    tmp<volScalarField> sigmaOmega(const volScalarField& F1) const
         {
             return 1.0 / blend(F1, 1.0/sigmaOmega1_, 1.0/sigmaOmega2_);
         }
 
-	
+       // void correctNut(const volScalarField& S2);
+
+
+    // Protected Member Functions
+        virtual void correctNut();
+        //virtual void correctNut();
+        /*virtual tmp<fvScalarMatrix> kSource() const;
+        virtual tmp<fvScalarMatrix> omegaSource() const;
+        virtual tmp<fvScalarMatrix> Qsas
+        (
+            const volScalarField& S2,
+            const volScalarField& gamma,
+            const volScalarField& beta
+        ) const;*/
+
 
 public:
+
+    typedef typename BasicTurbulenceModel::alphaField alphaField;
+    typedef typename BasicTurbulenceModel::rhoField rhoField;
+    typedef typename BasicTurbulenceModel::transportModel transportModel;
+
 
     //- Runtime type information
     TypeName("kOmegaSSTLowRe");
@@ -213,11 +234,14 @@ public:
         //- Construct from components
         kOmegaSSTLowRe
         (
+            const alphaField& alpha,
+            const rhoField& rho,
             const volVectorField& U,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
-            transportModel& transport,
-            const word& turbulenceModelName = turbulenceModel::typeName,
-            const word& modelName = typeName
+            const transportModel& transport,
+            const word& propertiesName = turbulenceModel::propertiesName,
+            const word& type = typeName
         );
 
 
@@ -228,18 +252,18 @@ public:
 
     // Member Functions
 
-        //- Return the turbulence viscosity
-        virtual tmp<volScalarField> nut() const
-        {
-            return nut_;
-        }
+        //- Re-read model coefficients if they have changed
+        virtual bool read();
+
+        //- Return the effective diffusivity for k
+        
 
         //- Return the effective diffusivity for k
         tmp<volScalarField> DkEff(const volScalarField& F1) const
         {
             return tmp<volScalarField>
             (
-                new volScalarField("DkEff", (nut_ / sigmaK(F1)) + nu())
+                new volScalarField("DkEff", (this->nut_ / sigmaK(F1)) + this->nu())
             );
         }
 
@@ -248,7 +272,7 @@ public:
         {
             return tmp<volScalarField>
             (
-                new volScalarField("DomegaEff", (nut_ / sigmaOmega(F1)) + nu())
+                new volScalarField("DomegaEff", (this->nut_ / sigmaOmega(F1)) + this->nu())
             );
         }
 
@@ -274,47 +298,31 @@ public:
                     IOobject
                     (
                         "epsilon",
-                        mesh_.time().timeName(),
-                        mesh_
+                        this->mesh_.time().timeName(),
+                        this->mesh_
                     ),
-                    0.09*k_*omega_,					//not SST version!!!
+                    0.09*k_*omega_,                 //not SST version!!!
                     omega_.boundaryField().types()
                 )
             );
         }
 
-        //- Return the Reynolds stress tensor
-        virtual tmp<volSymmTensorField> R() const;
-
-        //- Return the effective stress tensor including the laminar stress
-        virtual tmp<volSymmTensorField> devReff() const;
-
-        //- Return the source term for the momentum equation
-        virtual tmp<fvVectorMatrix> divDevReff(volVectorField& U) const;
-
-        //- Return the source term for the momentum equation
-        virtual tmp<fvVectorMatrix> divDevRhoReff
-        (
-            const volScalarField& rho,
-            volVectorField& U
-        ) const;
-
         //- Solve the turbulence equations and correct the turbulence viscosity
         virtual void correct();
-
-        //- Read RASProperties dictionary
-        virtual bool read();
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace RASModels
-} // namespace incompressible
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#ifdef NoRepository
+#   include "kOmegaSSTLowRe.C"
+#endif
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 #endif
 
 // ************************************************************************* //
