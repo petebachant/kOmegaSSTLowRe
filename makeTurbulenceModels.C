@@ -1,3 +1,5 @@
+// Copyright held by original authors
+
 #include "IncompressibleTurbulenceModel.H"
 #include "incompressible/transportModel/transportModel.H"
 #include "addToRunTimeSelectionTable.H"
@@ -7,7 +9,7 @@
 
 namespace Foam
 {
-    typedef IncompressibleTurbulenceModel<transportModel> 
+    typedef IncompressibleTurbulenceModel<transportModel>
         transportModelIncompressibleTurbulenceModel;
     typedef RASModel<transportModelIncompressibleTurbulenceModel>
         RAStransportModelIncompressibleTurbulenceModel;

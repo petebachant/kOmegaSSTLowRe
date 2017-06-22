@@ -26,17 +26,7 @@ Class
 
 Description
     Implementation of the k-omega-SST turbulence model for incompressible
-    flows.
-
-     ****************************************************************
-     *
-     *
-     *      Fluent V.15.0 low-Re Extensions
-     *
-     *
-     ****************************************************************
-    
-
+    flows with Fluent v15.0 low-Re Extensions
 
     Turbulence model described in:
     \verbatim
@@ -157,7 +147,7 @@ protected:
 
             volScalarField k_;
             volScalarField omega_;
-            
+
     // Private Member Functions
 
         tmp<volScalarField> ReT() const;
@@ -182,22 +172,28 @@ protected:
 
         tmp<volScalarField> alphaInf(const volScalarField& F1) const
         {
-            return blend(F1, (beta1_/betaStarInf_ - sqr(kappa_)/(sigmaOmega1_ * sqrt(betaStarInf_))), (beta2_/betaStarInf_ - sqr(kappa_)/(sigmaOmega2_ * sqrt(betaStarInf_))));
-            //return blend(F1, 0.553166667, 0.440262557);
+            return blend(F1, (beta1_/betaStarInf_ - sqr(kappa_)
+                / (sigmaOmega1_ * sqrt(betaStarInf_))),
+                (beta2_/betaStarInf_ - sqr(kappa_)/(sigmaOmega2_
+                * sqrt(betaStarInf_))));
         }
-    tmp<volScalarField> betaI(const volScalarField& F1) const
+
+        tmp<volScalarField> betaI(const volScalarField& F1) const
         {
             return blend(F1, beta1_, beta2_);
         }
+
         tmp<volScalarField> beta(const volScalarField& F1) const
         {
             return betaI(F1);   //non-compressible version
         }
-    tmp<volScalarField> sigmaK(const volScalarField& F1) const
+
+        tmp<volScalarField> sigmaK(const volScalarField& F1) const
         {
             return 1.0 / blend(F1, 1.0/sigmaK1_, 1.0/sigmaK2_);
         }
-    tmp<volScalarField> sigmaOmega(const volScalarField& F1) const
+
+        tmp<volScalarField> sigmaOmega(const volScalarField& F1) const
         {
             return 1.0 / blend(F1, 1.0/sigmaOmega1_, 1.0/sigmaOmega2_);
         }
@@ -206,6 +202,7 @@ protected:
 
 
     // Protected Member Functions
+
         virtual void correctNut();
         //virtual void correctNut();
         /*virtual tmp<fvScalarMatrix> kSource() const;
@@ -256,14 +253,17 @@ public:
         virtual bool read();
 
         //- Return the effective diffusivity for k
-        
+
 
         //- Return the effective diffusivity for k
         tmp<volScalarField> DkEff(const volScalarField& F1) const
         {
             return tmp<volScalarField>
             (
-                new volScalarField("DkEff", (this->nut_ / sigmaK(F1)) + this->nu())
+                new volScalarField
+                (
+                    "DkEff", (this->nut_ / sigmaK(F1)) + this->nu()
+                )
             );
         }
 
@@ -272,7 +272,10 @@ public:
         {
             return tmp<volScalarField>
             (
-                new volScalarField("DomegaEff", (this->nut_ / sigmaOmega(F1)) + this->nu())
+                new volScalarField
+                (
+                    "DomegaEff", (this->nut_ / sigmaOmega(F1)) + this->nu()
+                )
             );
         }
 
