@@ -427,7 +427,7 @@ bool kOmegaSSTLowRe<BasicTurbulenceModel>::read()
     }
     else
     {
-        return falstabe;
+        return false;
     }
 }
 
