@@ -1,0 +1,26 @@
+# Travis CI setup for checking OpenFOAM code compiles and more or less
+# complies with the style rules
+
+sudo: required
+dist: trusty
+language: cpp
+
+env:
+    - OF_VERS=30
+    - OF_VERS=4
+
+before_install:
+    - sudo add-apt-repository http://dl.openfoam.org/ubuntu
+    - sudo sh -c "wget -O - http://dl.openfoam.org/gpg.key | apt-key add -"
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq openfoam${OF_VERS}
+    - sudo apt-get install -qq vera++
+
+install:
+    - source /opt/openfoam${OF_VERS}/etc/bashrc
+    - ./Allwmake
+
+script:
+    - source /opt/openfoam${OF_VERS}/etc/bashrc
+    - ./Alltest
+    - ./foamStyleCheck/checkStyle
