@@ -449,7 +449,7 @@ void kOmegaSSTLowRe<BasicTurbulenceModel>::correct()
     volScalarField G(this->GName(), this->nut_*S2);
 
     // Update omega and G at the wall
-    omega_.boundaryField().updateCoeffs();
+    omega_.boundaryFieldRef().updateCoeffs();
 
     const volScalarField CDkOmega
     (
@@ -475,9 +475,9 @@ void kOmegaSSTLowRe<BasicTurbulenceModel>::correct()
         )
     );
 
-    omegaEqn().relax();
+    omegaEqn.ref().relax();
 
-    omegaEqn().boundaryManipulate(omega_.boundaryField());
+    omegaEqn.ref().boundaryManipulate(omega_.boundaryFieldRef());
 
     solve(omegaEqn);
     bound(omega_, this->omegaMin_);
@@ -493,7 +493,7 @@ void kOmegaSSTLowRe<BasicTurbulenceModel>::correct()
       - fvm::Sp(betaStar()*omega_, k_)
     );
 
-    kEqn().relax();
+    kEqn.ref().relax();
     solve(kEqn);
     bound(k_, this->kMin_);
 
