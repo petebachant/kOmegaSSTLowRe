@@ -6,7 +6,6 @@ dist: trusty
 language: cpp
 
 env:
-    - OF_VERS=30
     - OF_VERS=4
 
 before_install:
